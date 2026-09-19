@@ -18,6 +18,7 @@ export interface BuildGraphResult {
 const FOCUSED_MAX_NODES = 25;
 const FOCUSED_HOP1_LIMIT = 8;
 const FOCUSED_HOP2_LIMIT = 16;
+const FULL_GRAPH_MAX_NODES = 1000;
 
 function normalizeGraph(
   trace?: TraceGraph
@@ -49,7 +50,8 @@ function normalizeGraph(
 export function buildGraph(
   trace?: TraceGraph,
   rootWallet?: string,
-  mode: "focused" | "full" = "full"
+  mode: "focused" | "full" = "full",
+  maxNodes: number = FULL_GRAPH_MAX_NODES
 ): BuildGraphResult {
   const graph = normalizeGraph(trace);
   const traceObj = trace as unknown as Record<string, unknown> | undefined;
@@ -131,8 +133,8 @@ export function buildGraph(
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: "#06b6d4",
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
         },
         style: {
           stroke: "#0ea5e9",
@@ -180,8 +182,9 @@ export function buildGraph(
       nodePositions.set(wallet, { x, y });
     });
   } else {
-    // FULL GRAPH: Hierarchical cluster layout so all nodes & edges are cleanly visible
-    visibleWallets = Array.from(walletSet);
+    // FULL GRAPH: Process and display up to 1,000 wallet nodes
+    const allUnique = Array.from(walletSet);
+    visibleWallets = allUnique.length > maxNodes ? allUnique.slice(0, maxNodes) : allUnique;
 
     const hop1Nodes: string[] = [];
     const otherNodes: string[] = [];
@@ -210,22 +213,23 @@ export function buildGraph(
     });
 
     let currentY = 80;
-    const rowHeight = 72;
-    const colWidth = 260;
-    const clusterGap = 35;
-    const COLS_PER_CLUSTER = 4;
+    const rowHeight = 74;
+    const colWidth = 265;
+    const clusterGap = 40;
 
     hop1Nodes.forEach((h1) => {
       const children = childrenByParent.get(h1) || [];
-      const rowCount = Math.max(1, Math.ceil(children.length / COLS_PER_CLUSTER));
+      // Dynamic column count: scales neatly from 2 to 6 columns for large clusters
+      const cols = Math.min(6, Math.max(2, Math.ceil(Math.sqrt(children.length))));
+      const rowCount = Math.max(1, Math.ceil(children.length / cols));
       const clusterHeight = rowCount * rowHeight;
       const parentY = currentY + (clusterHeight - rowHeight) / 2;
 
       nodePositions.set(h1, { x: 420, y: parentY });
 
       children.forEach((child, idx) => {
-        const col = idx % COLS_PER_CLUSTER;
-        const row = Math.floor(idx / COLS_PER_CLUSTER);
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
         const childX = 750 + col * colWidth;
         const childY = currentY + row * rowHeight;
         nodePositions.set(child, { x: childX, y: childY });
@@ -235,14 +239,15 @@ export function buildGraph(
     });
 
     if (fallbackChildren.length > 0) {
+      const cols = Math.min(6, Math.max(2, Math.ceil(Math.sqrt(fallbackChildren.length))));
       fallbackChildren.forEach((child, idx) => {
-        const col = idx % COLS_PER_CLUSTER;
-        const row = Math.floor(idx / COLS_PER_CLUSTER);
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
         const childX = 750 + col * colWidth;
         const childY = currentY + row * rowHeight;
         nodePositions.set(child, { x: childX, y: childY });
       });
-      currentY += Math.ceil(fallbackChildren.length / COLS_PER_CLUSTER) * rowHeight + clusterGap;
+      currentY += Math.ceil(fallbackChildren.length / cols) * rowHeight + clusterGap;
     }
 
     // Center root vertically relative to all Hop 1 clusters
@@ -254,6 +259,17 @@ export function buildGraph(
   const visibleEdges = allEdges.filter(
     (edge) => visibleSet.has(edge.source) && visibleSet.has(edge.target)
   );
+
+  // Performance optimization for large graphs (> 150 edges):
+  // Animate root connections while keeping peer edges static to preserve 60 FPS
+  const isLargeGraph = visibleEdges.length > 150;
+  const optimizedEdges: Edge[] = visibleEdges.map((edge) => {
+    const isRootEdge = edge.source === root || edge.target === root;
+    return {
+      ...edge,
+      animated: isLargeGraph ? isRootEdge : true,
+    };
+  });
 
   const nodes: Node<CustomNodeData>[] = visibleWallets.map((wallet) => {
     const level = levelMap.get(wallet) ?? 1;
@@ -282,7 +298,7 @@ export function buildGraph(
 
   return {
     nodes,
-    edges: visibleEdges,
+    edges: optimizedEdges,
     totalWallets: walletSet.size,
     totalEdges: allEdges.length,
   };

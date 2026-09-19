@@ -38,9 +38,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content Area (Crisp White / Slate-50) */}
-      <div className="flex-1 md:pl-64 flex flex-col min-h-screen min-w-0 bg-slate-50">
+      <div className="flex-1 md:pl-64 flex flex-col min-h-screen min-w-0 max-w-full bg-slate-50 overflow-x-hidden">
         <Topbar onToggleMobileMenu={() => setMobileOpen(true)} />
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto min-w-0">
           {children}
         </main>
       </div>

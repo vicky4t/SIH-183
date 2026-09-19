@@ -177,11 +177,13 @@ function TransactionGraphInner({
             onNodeClick={onNodeClick}
             nodeTypes={nodeTypes}
             fitView
-            fitViewOptions={{ padding: 0.15 }}
-            minZoom={0.02}
-            maxZoom={2.0}
+            fitViewOptions={{ padding: 0.12 }}
+            minZoom={0.01}
+            maxZoom={2.5}
             panOnDrag
             zoomOnScroll
+            onlyRenderVisibleElements
+            nodesConnectable={false}
           >
             <AutoFitOnUpdate
               nodeCount={nodes.length}

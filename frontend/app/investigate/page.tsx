@@ -22,6 +22,7 @@ import { RiskBadge, StatusBadge } from "@/app/components/ui/Badge";
 import { Button } from "@/app/components/ui/Button";
 import { StatusBanner } from "@/app/components/ui/StatusBanner";
 import { VaspAttribution } from "@/app/components/investigate/VaspAttribution";
+import { WalletClusterIntelligence } from "@/app/components/investigate/WalletClusterIntelligence";
 import { PatternsList } from "@/app/components/investigate/PatternsList";
 import { InvestigatorAlert } from "@/app/components/investigate/InvestigatorAlert";
 
@@ -279,6 +280,21 @@ function InvestigateContent() {
     });
   }, []);
 
+  const handleSelectWallet = useCallback(
+    (address: string) => {
+      const target = address.toLowerCase();
+      const found = nodes.find(
+        (n) => n.data.fullAddress.toLowerCase() === target
+      );
+      const isRoot = target === (caseData?.wallet_address || "").toLowerCase();
+      setSelectedWallet({
+        fullAddress: address,
+        level: found?.data.level ?? (isRoot ? 0 : 1),
+      });
+    },
+    [nodes, caseData]
+  );
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -356,7 +372,7 @@ function InvestigateContent() {
 
             <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
               <span>Chain Detection: Automatic (EVM)</span>
-              <span>Trace Depth: 2 Hops (Standard)</span>
+              <span>Trace Depth: 2 Hops (Up to 1,000 Wallets)</span>
             </div>
           </div>
         </div>
@@ -447,9 +463,10 @@ function InvestigateContent() {
             disabled={!traceData}
           />
 
-          <VaspAttribution
-            analysisData={analysisData}
-            defaultChain={caseData?.chain || "EVM"}
+          <WalletClusterIntelligence
+            cluster={analysisData?.wallet_cluster}
+            selectedWallet={selectedWallet}
+            onSelectWallet={handleSelectWallet}
           />
         </div>
 
@@ -507,6 +524,24 @@ function InvestigateContent() {
                 <span className="text-slate-600 font-medium">Trace Depth</span>
                 <strong className="text-slate-900 font-mono">
                   {traceData?.max_hops ?? 2} Hops
+                </strong>
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-600 font-medium">Cluster Identifier</span>
+                <strong className="text-navy-900 font-mono font-bold">
+                  {analysisData?.wallet_cluster?.cluster_id || "—"}
+                </strong>
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <span className="text-slate-600 font-medium">Attributed VASP</span>
+                <strong className="text-slate-900 font-mono">
+                  {analysisData?.nearest_vasp?.nearest_vasp?.exchange ||
+                    (analysisData?.exchange_matches &&
+                    analysisData.exchange_matches.length > 0
+                      ? analysisData.exchange_matches[0].exchange
+                      : "Unattributed")}
                 </strong>
               </div>
 
@@ -617,6 +652,13 @@ function InvestigateContent() {
           <PatternsList findings={analysisData?.pattern_findings} />
 
           <InvestigatorAlert alert={analysisData?.alert} />
+
+          <VaspAttribution
+            analysisData={analysisData}
+            defaultChain={caseData?.chain || "EVM"}
+            selectedWallet={selectedWallet}
+            onSelectWallet={handleSelectWallet}
+          />
         </div>
       </div>
     </div>

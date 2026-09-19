@@ -5,22 +5,38 @@ import {
   HealthResponse,
 } from "@/app/types";
 
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+// ============================================================================
+// Central API Configuration & Validation
+// ============================================================================
 
-async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
-  try {
-    return await fetch(`${API_BASE}${path}`, options);
-  } catch (err) {
-    // Fallback to same-origin Next.js proxy if direct API_BASE fails in browser
-    if (typeof window !== "undefined" && API_BASE && !path.startsWith("http")) {
-      try {
-        return await fetch(path, options);
-      } catch {
-        // ignore fallback error and throw original
-      }
-    }
-    throw err;
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE ||
+  ""
+).replace(/\/+$/, "");
+
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not configured. Add it to .env.local");
+}
+
+// Backward-compatible alias for existing components
+export const API_BASE = API_URL;
+
+// ============================================================================
+// Error Handling
+// ============================================================================
+
+export class ApiError extends Error {
+  status: number;
+  statusText: string;
+  data?: unknown;
+
+  constructor(status: number, message: string, statusText: string = "", data?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.statusText = statusText;
+    this.data = data;
   }
 }
 
@@ -28,24 +44,73 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
   let data: Record<string, unknown> | null = null;
   try {
-    data = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+    data = text ? (JSON.parse(text) as Record<string, unknown>) : null;
   } catch {
-    data = { detail: text };
+    data = text ? { detail: text } : null;
   }
 
   if (!response.ok) {
-    const detail =
-      typeof data?.detail === "string" ? data.detail : undefined;
-    throw new Error(
-      detail || `Request failed with status ${response.status}`
-    );
+    let message = "";
+    if (typeof data?.detail === "string" && data.detail.trim()) {
+      message = data.detail.trim();
+    } else if (typeof data?.message === "string" && data.message.trim()) {
+      message = data.message.trim();
+    } else {
+      switch (response.status) {
+        case 400:
+          message = "Bad Request (400): Invalid request parameters or input data.";
+          break;
+        case 401:
+          message = "Unauthorized (401): Authentication required or session expired.";
+          break;
+        case 403:
+          message = "Forbidden (403): You do not have permission to access this resource.";
+          break;
+        case 404:
+          message = "Not Found (404): The requested resource was not found.";
+          break;
+        case 500:
+          message = "Internal Server Error (500): The backend server encountered an error.";
+          break;
+        case 502:
+          message = "Bad Gateway (502): Backend service is unreachable.";
+          break;
+        case 503:
+          message = "Service Unavailable (503): Backend service is temporarily offline.";
+          break;
+        default:
+          message = `Request failed with HTTP status ${response.status}${
+            response.statusText ? ` (${response.statusText})` : ""
+          }`;
+      }
+    }
+
+    throw new ApiError(response.status, message, response.statusText, data);
   }
 
-  return data as unknown as T;
+  return (data ?? {}) as unknown as T;
 }
 
+async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const url = `${API_URL}${cleanPath}`;
+
+  try {
+    return await fetch(url, options);
+  } catch (err) {
+    const errorDetail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Network error: Unable to connect to backend at ${API_URL}. Please verify the backend server is running. (${errorDetail})`
+    );
+  }
+}
+
+// ============================================================================
+// API Endpoints
+// ============================================================================
+
 export async function getCases(): Promise<Case[]> {
-  const response = await apiFetch("/api/cases/", {
+  const response = await apiFetch("/api/cases", {
     cache: "no-store",
   });
   const data = await parseResponse<Record<string, unknown> | Case[]>(response);
@@ -62,7 +127,7 @@ export async function getCases(): Promise<Case[]> {
 }
 
 export async function createCase(walletAddress: string): Promise<Case> {
-  const response = await apiFetch("/api/cases/", {
+  const response = await apiFetch("/api/cases", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -76,10 +141,13 @@ export async function createCase(walletAddress: string): Promise<Case> {
   return parseResponse<Case>(response);
 }
 
-export async function traceCase(caseId: string): Promise<TraceResponse> {
-  const response = await apiFetch(`/api/cases/${encodeURIComponent(caseId)}/trace`, {
-    cache: "no-store",
-  });
+export async function traceCase(caseId: string, maxNodes: number = 1000): Promise<TraceResponse> {
+  const response = await apiFetch(
+    `/api/cases/${encodeURIComponent(caseId)}/trace?max_nodes=${maxNodes}`,
+    {
+      cache: "no-store",
+    }
+  );
   return parseResponse<TraceResponse>(response);
 }
 
@@ -98,30 +166,39 @@ export async function getHealth(): Promise<HealthResponse> {
 }
 
 export function getReportPdfUrl(caseId: string): string {
-  return `${API_BASE}/api/reports/${encodeURIComponent(caseId)}/pdf`;
+  return `${API_URL}/api/reports/${encodeURIComponent(caseId)}/pdf`;
 }
 
 export async function downloadReportPdf(caseId: string): Promise<void> {
-  const response = await fetch(getReportPdfUrl(caseId));
+  const url = getReportPdfUrl(caseId);
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (err) {
+    const errorDetail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Network error: Unable to download PDF report from ${API_URL}. (${errorDetail})`
+    );
+  }
 
   if (!response.ok) {
-    let detail = `PDF generation failed (${response.status})`;
+    let detail = `PDF generation failed (HTTP ${response.status})`;
     try {
       const data = await response.json();
-      detail = data?.detail || detail;
+      detail = data?.detail || data?.message || detail;
     } catch {
-      // response wasn't json
+      // response was not JSON
     }
-    throw new Error(detail);
+    throw new ApiError(response.status, detail, response.statusText);
   }
 
   const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
+  const blobUrl = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = url;
+  link.href = blobUrl;
   link.download = `ShadowTrace_${caseId}_Investigation_Report.pdf`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+  window.URL.revokeObjectURL(blobUrl);
 }
