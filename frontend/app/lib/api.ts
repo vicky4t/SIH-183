@@ -45,7 +45,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 }
 
 export async function getCases(): Promise<Case[]> {
-  const response = await apiFetch("/api/cases/", {
+  const response = await apiFetch("/api/cases", {
     cache: "no-store",
   });
   const data = await parseResponse<Record<string, unknown> | Case[]>(response);
@@ -62,7 +62,7 @@ export async function getCases(): Promise<Case[]> {
 }
 
 export async function createCase(walletAddress: string): Promise<Case> {
-  const response = await apiFetch("/api/cases/", {
+  const response = await apiFetch("/api/cases", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -102,7 +102,21 @@ export function getReportPdfUrl(caseId: string): string {
 }
 
 export async function downloadReportPdf(caseId: string): Promise<void> {
-  const response = await fetch(getReportPdfUrl(caseId));
+  const url = getReportPdfUrl(caseId);
+  let response: Response;
+  try {
+    response = await fetch(url);
+  } catch (err) {
+    if (typeof window !== "undefined") {
+      try {
+        response = await fetch(`/api/reports/${encodeURIComponent(caseId)}/pdf`);
+      } catch {
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
 
   if (!response.ok) {
     let detail = `PDF generation failed (${response.status})`;
@@ -116,12 +130,12 @@ export async function downloadReportPdf(caseId: string): Promise<void> {
   }
 
   const blob = await response.blob();
-  const url = window.URL.createObjectURL(blob);
+  const blobUrl = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.href = url;
+  link.href = blobUrl;
   link.download = `ShadowTrace_${caseId}_Investigation_Report.pdf`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+  window.URL.revokeObjectURL(blobUrl);
 }

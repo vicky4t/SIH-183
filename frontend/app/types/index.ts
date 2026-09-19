@@ -44,11 +44,36 @@ export interface VaspMatch {
   match_type?: string;
 }
 
+export interface NearestVaspMatch extends VaspMatch {
+  hop_distance?: number;
+  path?: string[];
+}
+
 export interface NearestVasp {
   vasp_found: boolean;
   nearest_vasp?: VaspMatch | null;
-  hop_distance?: number;
+  hop_distance?: number | null;
   path?: string[];
+  matches?: NearestVaspMatch[];
+}
+
+export interface ClusterMember {
+  wallet: string;
+  score: number;
+  reasons: string[];
+}
+
+export interface WalletCluster {
+  cluster_found?: boolean;
+  cluster_id?: string;
+  cluster_type?: string;
+  root_wallet?: string;
+  cluster_size?: number;
+  confidence?: "HIGH" | "MEDIUM" | "LOW" | string | number;
+  wallets?: string[];
+  members?: ClusterMember[];
+  reasons?: string[];
+  disclaimer?: string;
 }
 
 export interface RiskAnalysis {
@@ -68,10 +93,17 @@ export interface AlertData {
 
 export interface AnalysisData {
   case_id?: string;
+  wallet_address?: string;
+  transaction_summary?: {
+    received_transactions?: number;
+    unique_transactions?: number;
+    duplicates_removed?: number;
+  };
   risk?: RiskAnalysis;
   pattern_findings?: PatternFinding[];
   exchange_matches?: VaspMatch[];
   nearest_vasp?: NearestVasp;
+  wallet_cluster?: WalletCluster;
   alert?: AlertData;
 }
 
