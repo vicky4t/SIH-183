@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*", "./app/*"],
+      "@/components/*": ["./app/components/*"],
+      "@/lib/*": ["./app/lib/*"],
+      "@/types": ["./app/types/index.ts"],
+      "@/types/*": ["./app/types/*"]
     }
   },
   "include": [
