@@ -11,7 +11,7 @@ from app.models.case import Case
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 
 
-@router.post("/", response_model=CaseResponse)
+@router.post("", response_model=CaseResponse)
 def create_case(
     case: CaseCreate,
     db: Session = Depends(get_db)
@@ -102,7 +102,7 @@ async def trace_case(
         "chain": case.chain,
         "trace": result
     }
-@router.get("/")
+@router.get("")
 def get_cases(
     db: Session = Depends(get_db)
 ):
