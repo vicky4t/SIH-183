@@ -428,8 +428,9 @@ export function WalletClusterIntelligence({
                   No cluster wallets match &quot;{searchQuery}&quot;.
                 </div>
               ) : (
-                <div className="border border-[#d4e2ee] rounded-xl divide-y divide-[#d4e2ee]/70 bg-white shadow-2xs">
-                  {filteredWallets.map((wallet: string, idx: number) => {
+                <div className="border border-[#d4e2ee] rounded-xl overflow-hidden shadow-2xs bg-white">
+                  <div className="max-h-[340px] overflow-y-auto overscroll-contain divide-y divide-[#d4e2ee]/70">
+                    {filteredWallets.map((wallet: string, idx: number) => {
                     const isSelected =
                       selectedAddrLower === wallet.toLowerCase();
                     const memberData = members.find(
@@ -523,6 +524,7 @@ export function WalletClusterIntelligence({
                       </div>
                     );
                   })}
+                  </div>
                 </div>
               )}
             </div>

@@ -463,13 +463,6 @@ function InvestigateContent() {
             disabled={!traceData}
           />
 
-          <VaspAttribution
-            analysisData={analysisData}
-            defaultChain={caseData?.chain || "EVM"}
-            selectedWallet={selectedWallet}
-            onSelectWallet={handleSelectWallet}
-          />
-
           <WalletClusterIntelligence
             cluster={analysisData?.wallet_cluster}
             selectedWallet={selectedWallet}
@@ -659,6 +652,13 @@ function InvestigateContent() {
           <PatternsList findings={analysisData?.pattern_findings} />
 
           <InvestigatorAlert alert={analysisData?.alert} />
+
+          <VaspAttribution
+            analysisData={analysisData}
+            defaultChain={caseData?.chain || "EVM"}
+            selectedWallet={selectedWallet}
+            onSelectWallet={handleSelectWallet}
+          />
         </div>
       </div>
     </div>

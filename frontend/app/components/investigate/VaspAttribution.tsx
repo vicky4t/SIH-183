@@ -81,44 +81,43 @@ export function VaspAttribution({
       <div className="h-[3px] w-full bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 rounded-t-[14px]" />
 
       {/* Card Header */}
-      <div className="p-5 pb-4 border-b border-[#d4e2ee]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 shrink-0 mt-0.5 shadow-2xs">
-            <Landmark className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold tracking-wider text-blue-900 uppercase">
-                CYBER-FORENSIC OFF-RAMP ATTRIBUTION
-              </span>
+      <div className="p-4 pb-3 border-b border-[#d4e2ee]/60 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 shrink-0 shadow-2xs">
+              <Landmark className="w-4 h-4" />
             </div>
-            <h3 className="text-base font-bold text-[#0f172a] tracking-tight">
-              Exchange / VASP Attribution
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Identify regulated centralized exchanges (CEX) and virtual asset service providers (VASP) in the flow of funds.
-            </p>
+            <div className="min-w-0">
+              <div className="text-[9px] font-mono font-bold tracking-wider text-blue-900 uppercase leading-none mb-0.5">
+                CYBER-FORENSIC ATTRIBUTION
+              </div>
+              <h3 className="text-sm font-bold text-[#0f172a] tracking-tight truncate">
+                Exchange / VASP Attribution
+              </h3>
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            {isVaspIdentified ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                VASP Identified
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                No Direct VASP
+              </span>
+            )}
           </div>
         </div>
-
-        {/* Top-Right Pill-Shaped Status Badge */}
-        <div className="self-start sm:self-center shrink-0">
-          {isVaspIdentified ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              VASP Identified
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-              No Direct VASP
-            </span>
-          )}
-        </div>
+        <p className="text-[11px] text-slate-500 leading-tight">
+          Identify regulated centralized exchanges (CEX) and virtual asset service providers (VASP) in the flow of funds.
+        </p>
       </div>
 
-      {/* Card Content - Auto-expanding, No fixed height */}
-      <div className="p-5 space-y-6">
+      {/* Card Content - Compact layout */}
+      <div className="p-4 space-y-3.5">
         {/* Graph Node Selection Highlight Callout (if node is selected in graph) */}
         {selectedWallet && (
           <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 text-xs space-y-1.5">
@@ -288,8 +287,8 @@ export function VaspAttribution({
               </div>
 
               {/* 3-Column Info Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 2xl:grid-cols-3 gap-3">
+                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs min-w-0">
                   <span className="text-[10px] text-slate-400 uppercase font-mono font-bold tracking-wider">
                     Blockchain Network
                   </span>
@@ -301,7 +300,7 @@ export function VaspAttribution({
                   </span>
                 </div>
 
-                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs">
+                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs min-w-0">
                   <span className="text-[10px] text-slate-400 uppercase font-mono font-bold tracking-wider">
                     Hop Distance
                   </span>
@@ -313,7 +312,7 @@ export function VaspAttribution({
                   </span>
                 </div>
 
-                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs">
+                <div className="p-3 bg-white border border-[#d4e2ee] rounded-xl shadow-2xs min-w-0">
                   <span className="text-[10px] text-slate-400 uppercase font-mono font-bold tracking-wider">
                     Match Type
                   </span>
@@ -340,12 +339,12 @@ export function VaspAttribution({
                   </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 pt-1">
                   <span className="font-mono text-xs text-[#0f172a] font-bold break-all select-all">
                     {nearestMatch.matched_address}
                   </span>
 
-                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 shrink-0 self-start xl:self-auto">
                     <button
                       onClick={() =>
                         copyToClipboard(nearestMatch.matched_address || "")
@@ -402,7 +401,7 @@ export function VaspAttribution({
                       <React.Fragment key={`${wallet}-${index}`}>
                         <div
                           onClick={() => onSelectWallet?.(wallet)}
-                          className={`p-3 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 font-mono text-xs cursor-pointer transition-all border ${
+                          className={`p-3 rounded-lg flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 font-mono text-xs cursor-pointer transition-all border ${
                             isCurrentSelected
                               ? "ring-2 ring-blue-600 shadow-sm"
                               : ""
@@ -435,7 +434,7 @@ export function VaspAttribution({
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <div className="flex items-center gap-2 shrink-0 self-end xl:self-center">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -506,24 +505,24 @@ export function VaspAttribution({
           </div>
         ) : !hasDirectMatch ? (
           /* 5. Empty State: No VASP Found */
-          <div className="py-10 px-6 bg-slate-50/70 border border-dashed border-[#d4e2ee] rounded-xl text-center space-y-3">
-            <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto">
-              <Building2 className="w-6 h-6" />
+          <div className="py-4 px-4 bg-slate-50/70 border border-dashed border-[#d4e2ee] rounded-xl text-center space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto">
+              <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="font-bold text-[#0f172a] text-sm">
+              <h4 className="font-bold text-[#0f172a] text-xs">
                 No Direct Exchange / VASP Endpoint Identified
               </h4>
-              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
+              <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
                 Within the analyzed multi-hop transaction horizon, funds currently
                 reside in unhosted private wallets or unverified smart contracts.
                 No recognized centralized exchange deposit or hot wallet matched
                 the known VASP directory.
               </p>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-mono">
-              <HelpCircle className="w-3.5 h-3.5" />
-              Funds in unhosted custody • Recommend monitoring for future off-ramp activity
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono">
+              <HelpCircle className="w-3 h-3" />
+              Funds in unhosted custody • Monitoring advised
             </div>
           </div>
         ) : null}
