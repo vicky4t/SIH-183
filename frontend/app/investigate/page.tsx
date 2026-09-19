@@ -372,7 +372,7 @@ function InvestigateContent() {
 
             <div className="flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-500 pt-1">
               <span>Chain Detection: Automatic (EVM)</span>
-              <span>Trace Depth: 2 Hops (Standard)</span>
+              <span>Trace Depth: 2 Hops (Up to 1,000 Wallets)</span>
             </div>
           </div>
         </div>
