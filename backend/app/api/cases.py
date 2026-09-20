@@ -11,6 +11,7 @@ from app.models.case import Case
 router = APIRouter(prefix="/api/cases", tags=["Cases"])
 
 
+@router.post("", response_model=CaseResponse)
 @router.post("/", response_model=CaseResponse)
 def create_case(
     case: CaseCreate,
@@ -78,6 +79,8 @@ def create_case(
 @router.get("/{case_id}/trace")
 async def trace_case(
     case_id: str,
+    max_hops: int = 2,
+    max_nodes: int = 1000,
     db: Session = Depends(get_db)
 ):
 
@@ -93,7 +96,8 @@ async def trace_case(
 
     result = await trace_wallet(
         case.wallet_address,
-        max_hops=2
+        max_hops=max_hops,
+        max_nodes=max_nodes
     )
 
     return {
@@ -102,6 +106,7 @@ async def trace_case(
         "chain": case.chain,
         "trace": result
     }
+@router.get("")
 @router.get("/")
 def get_cases(
     db: Session = Depends(get_db)

@@ -39,7 +39,8 @@ async def analyze_case(
 
     trace_result = await trace_wallet(
         case.wallet_address,
-        max_hops=2
+        max_hops=2,
+        max_nodes=1000
     )
 
     transactions = trace_result.get(
@@ -63,8 +64,10 @@ async def analyze_case(
         "wallet_address": case.wallet_address,
         "chain": chain,
         "trace": {
+            "root_wallet": trace_result.get("root_wallet", case.wallet_address),
             "max_hops": trace_result["max_hops"],
             "wallets_analyzed": trace_result["wallets_analyzed"],
+            "total_nodes": trace_result.get("total_nodes"),
             "graph": trace_result["graph"]
         },
         "analysis": analysis_result,
